@@ -10,6 +10,8 @@ interface EditHistoryItem {
   prompt: string;
   imageUrl: string;
   timestamp: Date;
+  isOriginal?: boolean;
+  beforeImageUrl?: string;
 }
 
 export default function Home() {
@@ -19,7 +21,14 @@ export default function Home() {
 
   const handleImageUpload = (imageUrl: string) => {
     setCurrentImage(imageUrl);
-    setEditHistory([]);
+    const originalImageEntry: EditHistoryItem = {
+      id: Date.now().toString(),
+      prompt: '',
+      imageUrl: imageUrl,
+      timestamp: new Date(),
+      isOriginal: true,
+    };
+    setEditHistory([originalImageEntry]);
   };
 
   const handleImageEdit = (prompt: string, newImageUrl: string) => {
@@ -28,6 +37,7 @@ export default function Home() {
       prompt,
       imageUrl: newImageUrl,
       timestamp: new Date(),
+      beforeImageUrl: currentImage || undefined,
     };
     
     setEditHistory(prev => [...prev, newEdit]);
