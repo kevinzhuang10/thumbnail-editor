@@ -1,45 +1,104 @@
 'use client';
 
-import { RotateCcw, Clock, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { RotateCcw, Clock, ChevronRight, Eye, EyeOff, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
-
-interface EditHistoryItem {
-  id: string;
-  prompt: string;
-  imageUrl: string;
-  timestamp: Date;
-  isOriginal?: boolean;
-  beforeImageUrl?: string;
-}
+import { useState, useEffect } from 'react';
+import { ProjectService } from '@/lib/projects';
+import type { Project, Edit } from '@/types/database';
 
 interface EditHistoryProps {
-  editHistory: EditHistoryItem[];
+  project: Project | null;
   currentImage: string | null;
   onSelectFromHistory: (imageUrl: string) => void;
   onReset: () => void;
 }
 
 export default function EditHistory({
-  editHistory,
+  project,
   currentImage,
   onSelectFromHistory,
   onReset
 }: EditHistoryProps) {
   const [showBefore, setShowBefore] = useState(false);
+  const [edits, setEdits] = useState<Edit[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const formatTimestamp = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
+  useEffect(() => {
+    if (project) {
+      loadEdits();
+    } else {
+      setEdits([]);
+    }
+  }, [project]);
+
+  const loadEdits = async () => {
+    if (!project) return;
+    
+    setLoading(true);
+    try {
+      const editsData = await ProjectService.getProjectEdits(project.id);
+      setEdits(editsData);
+    } catch (error) {
+      console.error('Failed to load edits:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const formatTimestamp = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
+  // Create a combined history with original image + edits
+  const historyItems = project ? [
+    {
+      id: 'original',
+      imageUrl: project.original_image_url,
+      prompt: '',
+      timestamp: project.created_at,
+      isOriginal: true,
+      edit_number: 0,
+      beforeImageUrl: undefined as string | undefined
+    },
+    ...edits.map(edit => ({
+      id: edit.id,
+      imageUrl: edit.output_image_url,
+      prompt: edit.prompt,
+      timestamp: edit.created_at,
+      isOriginal: false,
+      beforeImageUrl: edit.input_image_url,
+      edit_number: edit.edit_number
+    }))
+  ] : [];
+
+  if (!project) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg">
+        <div className="p-4 border-b">
+          <h3 className="text-lg font-semibold text-gray-900">Edit History</h3>
+        </div>
+        <div className="p-8 text-center">
+          <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 text-sm">
+            Select or create a project to see edit history
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-lg">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">Edit History</h3>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Edit History</h3>
+            <p className="text-sm text-gray-500 mt-1">{project.name}</p>
+          </div>
           {currentImage && (
             <button
               onClick={onReset}
@@ -51,7 +110,7 @@ export default function EditHistory({
           )}
         </div>
         
-        {editHistory.some(item => !item.isOriginal && item.beforeImageUrl) && (
+        {historyItems.some(item => !item.isOriginal && item.beforeImageUrl) && (
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowBefore(!showBefore)}
@@ -65,7 +124,12 @@ export default function EditHistory({
       </div>
 
       <div className="p-4">
-        {editHistory.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600 text-sm">Loading edit history...</p>
+          </div>
+        ) : historyItems.length === 0 ? (
           <div className="text-center py-8">
             <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-700 text-sm">
@@ -74,7 +138,7 @@ export default function EditHistory({
           </div>
         ) : (
           <div className="space-y-3">
-            {editHistory.map((item) => (
+            {historyItems.map((item) => (
               <div
                 key={item.id}
                 className={`group cursor-pointer border rounded-lg p-3 transition-all hover:shadow-md ${
@@ -115,7 +179,7 @@ export default function EditHistory({
                     <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden">
                       <Image
                         src={item.imageUrl}
-                        alt={item.isOriginal ? 'Original image' : `Edit ${editHistory.filter(h => !h.isOriginal).findIndex(h => h.id === item.id) + 1}`}
+                        alt={item.isOriginal ? 'Original image' : `Edit ${item.edit_number}`}
                         width={48}
                         height={48}
                         className="w-full h-full object-cover"
@@ -126,7 +190,7 @@ export default function EditHistory({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-gray-900">
-                        {item.isOriginal ? 'Original' : `Edit #${editHistory.filter(h => !h.isOriginal).findIndex(h => h.id === item.id) + 1}`}
+                        {item.isOriginal ? 'Original' : `Edit #${item.edit_number}`}
                       </span>
                       <div className="flex items-center space-x-1 text-xs text-gray-700">
                         <Clock className="w-3 h-3" />
@@ -161,10 +225,10 @@ export default function EditHistory({
         )}
       </div>
 
-      {editHistory.length > 0 && (
+      {historyItems.length > 0 && (
         <div className="p-4 border-t bg-gray-50 text-xs text-gray-600">
           <p>
-            Click on any version to restore it. Total edits: {editHistory.length}
+            Click on any version to restore it. Total items: {historyItems.length} (Original + {edits.length} edits)
           </p>
         </div>
       )}
