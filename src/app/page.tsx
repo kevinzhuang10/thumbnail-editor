@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import ImageUpload from '@/components/ImageUpload';
+import { useState } from 'react';
 import EditingInterface from '@/components/EditingInterface';
 import EditHistory from '@/components/EditHistory';
 import AuthForm from '@/components/AuthForm';
@@ -119,7 +118,7 @@ export default function Home() {
             AI Thumbnail Editor
           </h1>
           <p className="text-lg text-gray-600">
-            Edit your photos with natural language using Google's Gemini 2.5 Flash
+            Edit your photos with natural language using Google&apos;s Gemini 2.5 Flash
           </p>
           
           {user.email && (

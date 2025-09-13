@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare the request payload for fal.ai
-    const input: any = {
+    const input: Record<string, unknown> = {
       prompt: prompt,
       num_images: 1,
       output_format: 'jpeg',
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       prompt: prompt
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Log the error for debugging purposes
     console.error('Error generating image:', error);
     
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Failed to generate image',
-        details: error.message || 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

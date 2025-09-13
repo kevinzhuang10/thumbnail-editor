@@ -29,7 +29,7 @@ export default function AuthForm() {
     const { error } = await signIn(email);
 
     if (error) {
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'An error occurred');
       setLoading(false);
     } else {
       setSuccess('Check your email for the verification code!');
@@ -52,7 +52,7 @@ export default function AuthForm() {
     const { error } = await verifyOtp(email, otp);
 
     if (error) {
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'An error occurred');
       setLoading(false);
     }
   };
@@ -189,7 +189,7 @@ export default function AuthForm() {
 
         <div className="mt-8 pt-6 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">
-            We'll send you a secure code to verify your email address
+            We&apos;ll send you a secure code to verify your email address
           </p>
         </div>
       </div>

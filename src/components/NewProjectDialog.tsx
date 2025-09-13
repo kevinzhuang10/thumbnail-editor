@@ -88,8 +88,8 @@ export default function NewProjectDialog({
 
       onProjectCreated(project);
       handleClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create project');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create project');
     } finally {
       setLoading(false);
     }
@@ -174,6 +174,7 @@ export default function NewProjectDialog({
               ) : (
                 <div className="relative">
                   <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imagePreview}
                       alt="Preview"

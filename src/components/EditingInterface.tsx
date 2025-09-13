@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Wand2, Loader2, Download, RotateCcw } from 'lucide-react';
+import { Wand2, Loader2, Download } from 'lucide-react';
 import Image from 'next/image';
 
 interface EditingInterfaceProps {
@@ -47,8 +47,8 @@ export default function EditingInterface({
 
       onImageEdit(prompt, data.imageUrl);
       setPrompt('');
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while editing the image');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred while editing the image');
     } finally {
       setIsEditing(false);
     }

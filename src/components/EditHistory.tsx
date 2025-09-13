@@ -2,7 +2,7 @@
 
 import { RotateCcw, Clock, ChevronRight, Eye, EyeOff, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ProjectService } from '@/lib/projects';
 import type { Project, Edit } from '@/types/database';
 
@@ -23,15 +23,7 @@ export default function EditHistory({
   const [edits, setEdits] = useState<Edit[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (project) {
-      loadEdits();
-    } else {
-      setEdits([]);
-    }
-  }, [project]);
-
-  const loadEdits = async () => {
+  const loadEdits = useCallback(async () => {
     if (!project) return;
     
     setLoading(true);
@@ -43,7 +35,15 @@ export default function EditHistory({
     } finally {
       setLoading(false);
     }
-  };
+  }, [project]);
+
+  useEffect(() => {
+    if (project) {
+      loadEdits();
+    } else {
+      setEdits([]);
+    }
+  }, [project, loadEdits]);
 
 
   const formatTimestamp = (dateString: string) => {

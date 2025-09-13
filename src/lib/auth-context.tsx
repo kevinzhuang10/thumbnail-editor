@@ -8,9 +8,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string) => Promise<{ error: any }>;
-  signOut: () => Promise<{ error: any }>;
-  verifyOtp: (email: string, token: string) => Promise<{ error: any }>;
+  signIn: (email: string) => Promise<{ error: unknown }>;
+  signOut: () => Promise<{ error: unknown }>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: unknown }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

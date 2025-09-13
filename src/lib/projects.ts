@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Project, ProjectInsert, ProjectUpdate, Edit, EditInsert } from '../types/database';
+import type { Project, ProjectInsert, ProjectUpdate, Edit, EditInsert, Json } from '../types/database';
 
 export class ProjectService {
   // Projects
@@ -129,7 +129,7 @@ export class ProjectService {
     name: string,
     originalImageUrl: string,
     description?: string,
-    originalImageMetadata?: Record<string, any>
+    originalImageMetadata?: Json
   ): Promise<Project> {
     return this.createProject({
       user_id: userId,

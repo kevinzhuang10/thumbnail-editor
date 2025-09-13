@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, FolderOpen, Clock, Image as ImageIcon, ChevronDown, Search } from 'lucide-react';
 import Image from 'next/image';
 import { ProjectService } from '@/lib/projects';
@@ -24,13 +24,7 @@ export default function ProjectSelector({
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    if (user) {
-      loadProjects();
-    }
-  }, [user]);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       if (!user) return;
       const projectsData = await ProjectService.getProjects(user.id);
@@ -40,7 +34,13 @@ export default function ProjectSelector({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadProjects();
+    }
+  }, [user, loadProjects]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -194,7 +194,7 @@ export default function ProjectSelector({
                 ))
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  No projects found matching "{searchQuery}"
+                  No projects found matching &quot;{searchQuery}&quot;
                 </p>
               )}
             </div>
