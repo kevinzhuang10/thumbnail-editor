@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string) => Promise<{ error: unknown }>;
   signOut: () => Promise<{ error: unknown }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: unknown }>;
+  enableDevBypass: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,6 +66,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const enableDevBypass = () => {
+    // Only work in development
+    if (process.env.NODE_ENV !== 'development') {
+      console.warn('Dev bypass only works in development mode');
+      return;
+    }
+
+    // Create a mock user for design review
+    const mockUser: User = {
+      id: 'dev-user-123',
+      email: 'test@designreview.dev',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      aud: 'authenticated',
+      role: 'authenticated',
+      app_metadata: {},
+      user_metadata: { name: 'Design Review User' }
+    } as User;
+
+    const mockSession: Session = {
+      access_token: 'mock-token',
+      refresh_token: 'mock-refresh',
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'bearer',
+      user: mockUser
+    };
+
+    setUser(mockUser);
+    setSession(mockSession);
+    setLoading(false);
+  };
+
   const value = {
     user,
     session,
@@ -72,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     verifyOtp,
+    enableDevBypass,
   };
 
   return (
